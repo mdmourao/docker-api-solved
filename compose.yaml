@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+      build: .
+      restart: always
+      depends_on:
+        db:
+          condition: service_healthy
+      environment:
+        DB_HOST: db
+        DB_USER: myuser
+        DB_PASS: mypassword
+        DB_NAME: mydb
+        DB_PORT: "5432"
+      ports:
+        - "50007:50007"
+
+volumes:
+  db_data:
